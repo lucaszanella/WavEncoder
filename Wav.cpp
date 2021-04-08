@@ -149,7 +149,6 @@ bool Wav<T>::saveToWav(std::string& filename, int sampleRate, int channelCount, 
     for (std::size_t i = 0; i < data.size(); i++) {
         write<T>(ofs, data[i]);
     }
-
     ofs.close();
 
     return true;
