@@ -6,7 +6,7 @@
 #include <fstream>
 
 
-template<class R = std::int16_t>
+template<class T = std::int16_t>
 class Wav
 {
 public:
@@ -15,37 +15,37 @@ public:
     ~Wav() {}
 
     bool loadFromWav(std::string filename);
-    void loadFromVector(const std::vector<R>& data, int sampleRate, int numChannel);
+    void loadFromVector(const std::vector<T>& data, int sampleRate, int numChannel);
 
     bool saveToWav(std::string& filename) const;
-
+    static bool saveToWav(std::string& filename, int sampleRate, int channelCount, std::vector<T> data);
     int getSampleRate(void) const;
     int getNumChannel(void) const;
 
-    const std::vector<R>& getData(void) const;
+    const std::vector<T>& getData(void) const;
 private:
 
     int mSampleRate;
     int mNumChannel;
     int bitsPerSample;
 
-    std::vector<R> mData;
+    std::vector<T> mData;
 
 
-    template <class T>
-    static void write(std::ofstream& ofs,const T& data)
+    template <class R>
+    static void write(std::ofstream& ofs,const R& data)
     {
-        ofs.write( (char*)&data , sizeof(T));
+        ofs.write( (char*)&data , sizeof(R));
     }
 
-    template <class T>
+    template <class R>
     static T read(std::ifstream& ifs)
     {
-        char* data = new char[sizeof(T)];
+        char* data = new char[sizeof(R)];
 
-        ifs.read(data,sizeof(T));
+        ifs.read(data,sizeof(R));
 
-        const T result = *(T*)data;
+        const R result = *(R*)data;
 
         delete data;
 

@@ -96,9 +96,9 @@ void Wav<R>::loadFromVector(const std::vector<R> &data, const int sampleRate, co
 }
 
 template<typename T>
-bool Wav<T>::saveToWav(std::string& filename) const {
+bool Wav<T>::saveToWav(std::string& filename, int sampleRate, int channelCount, std::vector<T> data) {
     std::ofstream ofs(filename, std::ofstream::out | std::ofstream::binary);
-
+    int bitsPerSample = sizeof(T)*8; //number of bytes * number of bits in byte
     if (!ofs) {
         std::cerr << "Error: bool Wav::saveToWav(std::string) failed to create file |" << filename << "|." << std::endl;
         ofs.close();
@@ -108,8 +108,8 @@ bool Wav<T>::saveToWav(std::string& filename) const {
     //RIFF chunk descriptor
     encodeStr(ofs, "RIFF");
 
-    //std::cout << 44+mData.size()*2-1*8 << std::endl;
-    write<std::int32_t>(ofs, 44 + mData.size() * sizeof(T) - 1 * 8); ///byte number in the file
+    //std::cout << 44+data.size() * sizeof(T)-1*8 << std::endl;
+    write<std::int32_t>(ofs, 44 + data.size() * sizeof(T) - 1 * 8); ///byte number in the file
 
     encodeStr(ofs, "WAVE");
 
@@ -119,26 +119,30 @@ bool Wav<T>::saveToWav(std::string& filename) const {
     write<std::int32_t>(ofs, 16);
     /// Audio format (1 for PCM)
     write<std::int16_t>(ofs, int16_t(1));
-    write<std::int16_t>(ofs, int16_t(mNumChannel));
-    write<std::int32_t>(ofs, int32_t(mSampleRate));
-    //ByteRate (SampleRate * NumChannels * BitsPerSample/8)
-    write<std::int32_t>(ofs, int32_t(mSampleRate * mNumChannel * (bitsPerSample / 8)));
+    write<std::int16_t>(ofs, int16_t(channelCount));
+    write<std::int32_t>(ofs, int32_t(sampleRate));
+    /// ByteRate (SampleRate * NumChannels * BitsPerSample/8)
+    write<std::int32_t>(ofs, int32_t(sampleRate * channelCount * (bitsPerSample / 8)));
     /// Block align (NumChannels * BitsPerSample/8)
-    write<std::int16_t>(ofs, int16_t(mNumChannel * bitsPerSample / 8)); //block align
+    write<std::int16_t>(ofs, int16_t(channelCount * bitsPerSample / 8)); //block align
     write<std::int16_t>(ofs, int16_t(bitsPerSample)); //bitsPerSample
-
     /// DATA sub chunk ///
     encodeStr(ofs, "data");
-    //Subchunk2Size == NumSamples * NumChannels * BitsPerSample/8 (or simply: data size in bytes)
-    write<std::int32_t>(ofs, int32_t(mData.size() * sizeof(T)));
+    /// Subchunk2Size == NumSamples * NumChannels * BitsPerSample/8 (or simply: data size in bytes)
+    write<std::int32_t>(ofs, int32_t(data.size() * sizeof(T)));
 
-    for (std::size_t i = 0; i < mData.size(); i++) {
-        write<T>(ofs, mData[i]);
+    for (std::size_t i = 0; i < data.size(); i++) {
+        write<T>(ofs, data[i]);
     }
 
     ofs.close();
 
     return true;
+}
+
+template<typename T>
+bool Wav<T>::saveToWav(std::string& filename) const {
+    return Wav<T>::saveToWav(filename, mSampleRate, mNumChannel, mData);
 }
 
 template<typename T>
