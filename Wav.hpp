@@ -1,31 +1,35 @@
-#ifndef AUDIO_H
-#define AUDIO_H
+#ifndef SIMPLE_WAV_ENCODER_H
+#define SIMPLE_WAV_ENCODER_H
 
 #include <vector>
 #include <iostream>
 #include <fstream>
 
+
+template<class R = std::int16_t>
 class Wav
 {
 public:
-    Wav(void);
-    ~Wav(void) {}
+    Wav();
+    Wav(int sampleRate, int channelCount, int bitsPerSample);
+    ~Wav() {}
 
     bool loadFromWav(std::string filename);
-    void loadFromVector(const std::vector<std::int16_t>& data, int sampleRate, int numChannel);
+    void loadFromVector(const std::vector<R>& data, int sampleRate, int numChannel);
 
-    bool saveToWav(std::string filename) const;
+    bool saveToWav(std::string& filename) const;
 
     int getSampleRate(void) const;
     int getNumChannel(void) const;
 
-    const std::vector<std::int16_t>& getData(void) const;
+    const std::vector<R>& getData(void) const;
 private:
 
     int mSampleRate;
     int mNumChannel;
+    int bitsPerSample;
 
-    std::vector<std::int16_t> mData;
+    std::vector<R> mData;
 
 
     template <class T>
@@ -52,4 +56,4 @@ private:
     static void encodeStr(std::ofstream& ofs, const std::string& str);
 };
 
-#endif // AUDIO_H
+#endif // SIMPLE_WAV_ENCODER_H
