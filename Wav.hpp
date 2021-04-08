@@ -19,6 +19,7 @@ public:
 
     bool saveToWav(std::string& filename) const;
     static bool saveToWav(std::string& filename, int sampleRate, int channelCount, std::vector<T> data);
+    static bool writeHeader(std::string& filename, int sampleRate, int channelCount, size_t size);
     int getSampleRate(void) const;
     int getNumChannel(void) const;
 

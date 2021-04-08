@@ -96,11 +96,12 @@ void Wav<R>::loadFromVector(const std::vector<R> &data, const int sampleRate, co
 }
 
 template<typename T>
-bool Wav<T>::saveToWav(std::string& filename, int sampleRate, int channelCount, std::vector<T> data) {
+bool Wav<T>::writeHeader(std::string& filename, int sampleRate, int channelCount, size_t dataSize) {
     std::ofstream ofs(filename, std::ofstream::out | std::ofstream::binary);
+    ofs.seekp (0, std::ios::beg);
     int bitsPerSample = sizeof(T)*8; //number of bytes * number of bits in byte
     if (!ofs) {
-        std::cerr << "Error: bool Wav::saveToWav(std::string) failed to create file |" << filename << "|." << std::endl;
+        //std::cerr << "Error: bool Wav::saveToWav(std::string) failed to create file |" << filename << "|." << std::endl;
         ofs.close();
         return false;
     }
@@ -109,7 +110,7 @@ bool Wav<T>::saveToWav(std::string& filename, int sampleRate, int channelCount, 
     encodeStr(ofs, "RIFF");
 
     //std::cout << 44+data.size() * sizeof(T)-1*8 << std::endl;
-    write<std::int32_t>(ofs, 44 + data.size() * sizeof(T) - 1 * 8); ///byte number in the file
+    write<std::int32_t>(ofs, 44 + dataSize * sizeof(T) - 1 * 8); ///byte number in the file
 
     encodeStr(ofs, "WAVE");
 
@@ -129,8 +130,22 @@ bool Wav<T>::saveToWav(std::string& filename, int sampleRate, int channelCount, 
     /// DATA sub chunk ///
     encodeStr(ofs, "data");
     /// Subchunk2Size == NumSamples * NumChannels * BitsPerSample/8 (or simply: data size in bytes)
-    write<std::int32_t>(ofs, int32_t(data.size() * sizeof(T)));
+    write<std::int32_t>(ofs, int32_t(dataSize * sizeof(T)));
 
+/*    for (std::size_t i = 0; i < data.size(); i++) {
+        write<T>(ofs, data[i]);
+    }*/
+
+    ofs.close();
+
+    return true;
+}
+
+template<typename T>
+bool Wav<T>::saveToWav(std::string& filename, int sampleRate, int channelCount, std::vector<T> data) {
+    writeHeader(filename, sampleRate, channelCount, data.size());
+    std::ofstream ofs(filename, std::ofstream::out | std::ofstream::binary);
+    ofs.seekp (0, std::ios::beg);
     for (std::size_t i = 0; i < data.size(); i++) {
         write<T>(ofs, data[i]);
     }
