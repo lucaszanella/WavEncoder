@@ -1,4 +1,4 @@
-#include "wav.hpp"
+#include "Wav.hpp"
 
 #include <fstream>
 
